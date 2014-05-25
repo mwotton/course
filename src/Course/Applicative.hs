@@ -1,6 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE NoImplicitPrelude, RebindableSyntax, ScopedTypeVariables #-}
 
 module Course.Applicative(
   Applicative(..)
@@ -11,12 +9,12 @@ module Course.Applicative(
 , fail
 ) where
 
-import Course.Core
-import Course.Apply
-import Course.Id
-import Course.List
-import Course.Optional
-import qualified Prelude as P
+import           Course.Apply
+import           Course.Core
+import           Course.Id
+import           Course.List
+import           Course.Optional
+import qualified Prelude         as P
 
 class Apply f => Applicative f where
   pure ::
@@ -37,36 +35,35 @@ class Apply f => Applicative f where
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo"
+(<$>) f = (pure f <*>)
+
 
 -- | Insert into Id.
 --
 -- prop> pure x == Id x
 instance Applicative Id where
-  pure =
-    error "todo"
+  pure = Id
+
 
 -- | Insert into a List.
 --
 -- prop> pure x == x :. Nil
 instance Applicative List where
-  pure =
-    error "todo"
+  pure x = (x :. Nil)
+
 
 -- | Insert into an Optional.
 --
 -- prop> pure x == Full x
 instance Applicative Optional where
-  pure =
-    error "todo"
+  pure x = Full x
+
 
 -- | Insert into a constant function.
 --
 -- prop> pure x y == x
 instance Applicative ((->) t) where
-  pure =
-    error "todo"
+  pure x = \_ -> x
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -88,8 +85,9 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo"
+-- sequence = foldRight (\l fl -> (:.) <$> l <*> fl) (pure Nil)
+sequence = foldRight (lift2 (:.)) (pure Nil)
+
 
 -- | Replicate an effect a given number of times.
 --
@@ -112,8 +110,8 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo"
+replicateA i = sequence . replicate i
+
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -136,8 +134,10 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo"
+filtering p = foldRight (\a fl -> choose a <$> p a <*> fl) (pure Nil)
+  where choose a True = (a:.)
+        choose _ False = id
+
 
 -----------------------
 -- SUPPORT LIBRARIES --
