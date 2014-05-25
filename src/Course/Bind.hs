@@ -1,6 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE NoImplicitPrelude, RebindableSyntax, ScopedTypeVariables #-}
 
 module Course.Bind(
   Bind(..)
@@ -9,13 +7,13 @@ module Course.Bind(
 , (<=<)
 ) where
 
-import Course.Core
-import Course.Functor
-import Course.Apply(Apply)
-import Course.Id
-import Course.List
-import Course.Optional
-import qualified Prelude as P
+import           Course.Apply    (Apply)
+import           Course.Core
+import           Course.Functor
+import           Course.Id
+import           Course.List
+import           Course.Optional
+import qualified Prelude         as P
 
 class Apply f => Bind f where
   -- Pronounced, bind.
@@ -62,8 +60,8 @@ infixr 1 =<<
   f (a -> b)
   -> f a
   -> f b
-(<*>) =
-  error "todo"
+fab <*> a =  (<$> a) =<< fab
+
 
 infixl 4 <*>
 
@@ -72,32 +70,32 @@ infixl 4 <*>
 -- >>> (\x -> Id(x+1)) =<< Id 2
 -- Id 3
 instance Bind Id where
-  (=<<) =
-    error "todo"
+  f =<< (Id x) = f x
 
 -- | Binds a function on a List.
 --
 -- >>> (\n -> n :. n :. Nil) =<< (1 :. 2 :. 3 :. Nil)
 -- [1,1,2,2,3,3]
 instance Bind List where
-  (=<<) =
-    error "todo"
+  (=<<) = flatMap
+
 
 -- | Binds a function on an Optional.
 --
 -- >>> (\n -> Full (n + n)) =<< Full 7
 -- Full 14
 instance Bind Optional where
-  (=<<) =
-    error "todo"
+  _f =<< Empty = Empty
+  f =<< Full x = f x
 
 -- | Binds a function on the reader ((->) t).
 --
 -- >>> ((*) =<< (+10)) 7
 -- 119
 instance Bind ((->) t) where
-  (=<<) =
-    error "todo"
+  f =<< f2 = \x -> f (f2 x) x
+
+
 
 -- | Flattens a combined structure to a single structure.
 --
