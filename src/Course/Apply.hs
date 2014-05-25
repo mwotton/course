@@ -1,14 +1,13 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude, ScopedTypeVariables #-}
 
 module Course.Apply where
 
-import Course.Core
-import Course.Functor
-import Course.Id
-import Course.List
-import Course.Optional
-import qualified Prelude as P
+import           Course.Core
+import           Course.Functor
+import           Course.Id
+import           Course.List
+import           Course.Optional
+import qualified Prelude         as P
 
 class Functor f => Apply f where
   -- Pronounced apply.
@@ -24,16 +23,16 @@ infixl 4 <*>
 -- >>> Id (+10) <*> Id 8
 -- Id 18
 instance Apply Id where
-  (<*>) =
-    error "todo"
+  (Id a) <*> (Id b) = Id (a b)
+
 
 -- | Implement @Apply@ instance for @List@.
 --
 -- >>> (+1) :. (*2) :. Nil <*> 1 :. 2 :. 3 :. Nil
 -- [2,3,4,2,4,6]
 instance Apply List where
-  (<*>) =
-    error "todo"
+  fns <*> targets = flatMap (\x -> map x targets) fns
+
 
 -- | Implement @Apply@ instance for @Optional@.
 --
@@ -46,8 +45,8 @@ instance Apply List where
 -- >>> Full (+8) <*> Empty
 -- Empty
 instance Apply Optional where
-  (<*>) =
-    error "todo"
+  Full f <*> Full x = Full (f x)
+  _ <*> _ = Empty
 
 -- | Implement @Apply@ instance for reader.
 --
@@ -66,8 +65,8 @@ instance Apply Optional where
 -- >>> ((*) <*> (+2)) 3
 -- 15
 instance Apply ((->) t) where
-  (<*>) =
-    error "todo"
+  a <*> b = \x -> a x (b x)
+
 
 -- | Apply a binary function in the environment.
 --
@@ -94,8 +93,8 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 =
-  error "todo"
+lift2 abc fa fb = abc <$> fa <*> fb
+
 
 -- | Apply a ternary function in the Monad environment.
 --
@@ -126,8 +125,8 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo"
+lift3 abc fa fb fc = abc <$> fa <*> fb <*> fc
+
 
 -- | Apply a quaternary function in the environment.
 --
@@ -159,8 +158,8 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo"
+lift4 f a b c d = f <$> a <*> b <*> c <*> d
+
 
 -- | Sequence, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -185,8 +184,8 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo"
+(*>)  = lift2 (const id)
+
 
 -- | Sequence, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -211,8 +210,8 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo"
+(<*) = lift2 const
+
 
 -----------------------
 -- SUPPORT LIBRARIES --
