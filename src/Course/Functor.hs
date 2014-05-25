@@ -1,13 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude, ScopedTypeVariables #-}
 
 module Course.Functor where
 
-import Course.Core
-import Course.Id
-import Course.Optional
-import Course.List
-import qualified Prelude as P
+import           Course.Core
+import           Course.Id
+import           Course.List
+import           Course.Optional
+import qualified Prelude         as P
 
 class Functor f where
   -- Pronounced, eff-map.
@@ -28,8 +27,7 @@ infixl 4 <$>
 -- >>> (+1) <$> Id 2
 -- Id 3
 instance Functor Id where
-  (<$>) =
-    error "todo"
+  (<$>) = \f (Id b) -> Id (f b)
 
 -- | Maps a function on the List functor.
 --
@@ -39,8 +37,8 @@ instance Functor Id where
 -- >>> (+1) <$> (1 :. 2 :. 3 :. Nil)
 -- [2,3,4]
 instance Functor List where
-  (<$>) =
-    error "todo"
+  (<$>) = map
+--    error "todo"
 
 -- | Maps a function on the Optional functor.
 --
@@ -50,16 +48,17 @@ instance Functor List where
 -- >>> (+1) <$> Full 2
 -- Full 3
 instance Functor Optional where
-  (<$>) =
-    error "todo"
+  (<$>) _ Empty = Empty
+  (<$>) f (Full x) = Full $ f x
+
 
 -- | Maps a function on the reader ((->) t) functor.
 --
 -- >>> ((+1) <$> (*2)) 8
 -- 17
 instance Functor ((->) t) where
-  (<$>) =
-    error "todo"
+  (<$>) = (.)
+
 
 -- | Anonymous map. Maps a constant value on a functor.
 --
@@ -74,8 +73,8 @@ instance Functor ((->) t) where
   a
   -> f b
   -> f a
-(<$) =
-  error "todo"
+(<$) realval a = const realval <$> a
+
 
 -- | Anonymous map producing unit value.
 --
@@ -94,8 +93,8 @@ void ::
   Functor f =>
   f a
   -> f ()
-void =
-  error "todo"
+void = (() <$)
+
 
 -----------------------
 -- SUPPORT LIBRARIES --
